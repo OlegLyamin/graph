@@ -61,9 +61,9 @@ public class EdgeService {
 
     @Transactional
     public EdgeResponseDTO updateEdge(Long id, EdgeRequestDTO request) {
-        checkExistEdge(id);
+        Edge edge = edgeRepository.findById(id).orElseThrow(() ->
+                new HandledException(Error.EDGE_NOT_FOUND, "Edge not found"));
 
-        Edge edge = edgeRepository.getOne(id);
         modelMapper.map(request, edge);
 
         Edge savedEdge = edgeRepository.save(edge);
@@ -73,29 +73,21 @@ public class EdgeService {
 
     @Transactional
     public void removeEdge(Long id) {
-        checkExistEdge(id);
-
-        edgeRepository.delete(edgeRepository.getOne(id));
+        edgeRepository.delete(edgeRepository.findById(id).orElseThrow(() ->
+                new HandledException(Error.EDGE_NOT_FOUND, "Edge not found")));
     }
 
     @Transactional
     public void removeEdges(List<Long> ids) {
         ids.forEach(id -> {
-            checkExistEdge(id);
-
-            edgeRepository.delete(edgeRepository.getOne(id));
+            edgeRepository.delete(edgeRepository.findById(id).orElseThrow(() ->
+                    new HandledException(Error.EDGE_NOT_FOUND, "Edge not found")));
         });
     }
 
     private void checkExistGraph(Long graphId) {
         if (!graphRepository.existsById(graphId)) {
             throw new HandledException(Error.GRAPH_NOT_FOUND, "Graph not found");
-        }
-    }
-
-    private void checkExistEdge(Long edgeId) {
-        if (!edgeRepository.existsById(edgeId)) {
-            throw new HandledException(Error.EDGE_NOT_FOUND, "Edge not found");
         }
     }
 

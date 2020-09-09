@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GraphService {
@@ -42,7 +43,8 @@ public class GraphService {
 
     @Transactional
     public GraphResponseDTO updateGraph(Long id, GraphRequestDTO request) {
-        Graph graph = graphRepository.getOne(id);
+        Graph graph = graphRepository.findById(id).orElseThrow(() ->
+                new HandledException(Error.GRAPH_NOT_FOUND, "Graph not found"));
 
         graph.setName(request.getName());
 
@@ -53,16 +55,14 @@ public class GraphService {
 
     @Transactional
     public void removeGraph(Long id) {
-        checkExistGraph(id);
-
-        graphRepository.delete(graphRepository.getOne(id));
+        graphRepository.delete(graphRepository.findById(id).orElseThrow(() ->
+                new HandledException(Error.GRAPH_NOT_FOUND, "Graph not found")));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public GraphResponseDTO getGraphById(Long id) {
-        checkExistGraph(id);
-
-        Graph graph = graphRepository.getOne(id);
+        Graph graph = graphRepository.findById(id).orElseThrow(() ->
+                new HandledException(Error.GRAPH_NOT_FOUND, "Graph not found"));
 
         return mapGraphEntityToDTO(graph);
     }
@@ -81,11 +81,5 @@ public class GraphService {
         mappedGraph.setEdgeIds(edgeIds);
 
         return mappedGraph;
-    }
-
-    private void checkExistGraph(Long graphId) {
-        if (!graphRepository.existsById(graphId)) {
-            throw new HandledException(Error.GRAPH_NOT_FOUND, "Graph not found");
-        }
     }
 }
